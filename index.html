@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UPWISE | Your AI-powered life assistant</title>
+<meta name="description" content="Learn smarter, discover opportunities, build better habits and make everyday decisions with an intelligent assistant.">
+<meta name="theme-color" content="#101a16">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+try { var t = localStorage.getItem("upwise-theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+</script>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="UPWISE home">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="var(--accent)"/><path d="M8 18l6-8 6 8" fill="none" stroke="var(--on-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      UPWISE
+    </a>
+    <nav class="nav" id="nav" aria-label="Main">
+      <a href="#assistant">Assistant</a>
+      <a href="#features">Features</a>
+      <a href="#opportunities">Opportunities</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="actions">
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="Switch to light mode">&#9728;</button>
+      <a class="btn ghost small login" href="login.html">Log in</a>
+      <a class="btn primary small" href="signup.html">Sign up</a>
+      <button class="icon-btn" id="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav">&#9776;</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <h1>Your life has potential. Let&rsquo;s put it to work.</h1>
+      <p class="lead">Learn smarter, discover opportunities, build better habits and make everyday decisions with an intelligent assistant designed to help you move forward.</p>
+      <div class="cta">
+        <a class="btn primary" href="signup.html">Get Started</a>
+        <a class="btn ghost" href="#features">Explore UPWISE</a>
+      </div>
+    </div>
+    <div class="demo" aria-label="Example conversation">
+      <span class="tag">Example conversation</span>
+      <div class="bubble you">I don&rsquo;t know how to organise my studies.</div>
+      <div class="bubble ai">Let&rsquo;s start with what you have to cover. Here is a first plan:
+        <ol><li>List every subject and its exam date.</li><li>Rank them by difficulty.</li><li>Block two focused sessions a day.</li></ol>
+      </div>
+    </div>
+  </div>
+
+  <section class="block" id="assistant">
+    <div class="wrap two">
+      <div>
+        <h2>An assistant that starts where you are</h2>
+        <p class="muted">Ask a question in plain language, or tell it you are stuck. UPWISE asks what it needs, explains simply, and turns the answer into steps you can act on.</p>
+      </div>
+      <div class="promise">
+        <h3>Honest by design</h3>
+        <ul>
+          <li>It says when it is unsure instead of guessing.</li>
+          <li>It does not invent sources, statistics or opportunities.</li>
+          <li>Medical, legal and money answers come with a reminder to verify.</li>
+          <li>Study help explains ideas rather than doing your assessments.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="features">
+    <div class="wrap">
+      <h2>Everything you need to move forward</h2>
+      <div class="features" style="margin-top:28px">
+        <div class="feature"><h3>I&rsquo;m Stuck</h3><p>Describe a problem and get options compared and a plan you can save.</p></div>
+        <div class="feature"><h3>Life hacks library</h3><p>Searchable guides on tech, money, study and careers.</p></div>
+        <div class="feature"><h3>60-second learning</h3><p>Short lessons you can finish between classes.</p></div>
+        <div class="feature"><h3>Money tools</h3><p>Budget, track expenses and plan savings in naira or other currencies.</p></div>
+        <div class="feature"><h3>Personal upgrade</h3><p>Goals, habits and weekly reviews that favour steady progress.</p></div>
+        <div class="feature"><h3>Student survival</h3><p>Timetables, revision plans and exam countdowns.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="opportunities">
+    <div class="wrap two">
+      <div>
+        <h2>Opportunities you can verify</h2>
+        <p class="muted">Scholarships, internships, competitions and programmes, with the details that matter.</p>
+      </div>
+      <div class="promise">
+        <ul style="margin-top:0">
+          <li>Each listing shows its source and when it was last verified.</li>
+          <li>Every application link goes to the official page.</li>
+          <li>Expired opportunities are clearly marked.</li>
+          <li>Bookmark an opportunity and set a deadline reminder.</li>
+        </ul>
+        <p class="muted" style="margin:14px 0 0;font-size:15px">Opportunity listings are being set up. UPWISE will never show made-up results.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <h2>What people could say</h2>
+      <p class="muted" style="margin:0">Sample content for design purposes. These are not real users.</p>
+      <div class="quotes">
+        <blockquote>&ldquo;I finally have a study plan I can stick to.&rdquo;<cite>Sample student</cite></blockquote>
+        <blockquote>&ldquo;The budget tool showed me where my allowance goes.&rdquo;<cite>Sample user</cite></blockquote>
+        <blockquote>&ldquo;I saved a deadline and got a reminder in time.&rdquo;<cite>Sample applicant</cite></blockquote>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="faq">
+    <div class="wrap" style="max-width:760px">
+      <h2>Questions</h2>
+      <details><summary>Is UPWISE free?</summary><p>Details on pricing will be shared before launch.</p></details>
+      <details><summary>Can I trust the AI&rsquo;s answers?</summary><p>It is a helpful guide, not an authority. Check important facts with official sources, especially for health, legal and money decisions.</p></details>
+      <details><summary>Is it only for Nigerian users?</summary><p>No. UPWISE has a corner built for Nigerian youth, and the rest is useful anywhere.</p></details>
+      <details><summary>Will it do my homework for me?</summary><p>It explains concepts and helps you practise, but it is built to support learning, not assessment cheating.</p></details>
+      <details><summary>What happens to my data?</summary><p>You only see your own information, and you will be able to delete your account. We collect only what the product needs.</p></details>
+    </div>
+  </section>
+
+  <section class="block final">
+    <div class="wrap">
+      <h2>Discover more. Learn more. Become more.</h2>
+      <p>Create your account and start with one question.</p>
+      <a class="btn primary" href="signup.html">Get Started</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>&copy; UPWISE</span>
+    <nav aria-label="Footer"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact</a></nav>
+  </div>
+</footer>
+<script src="site.js"></script>
+</body>
+</html>
