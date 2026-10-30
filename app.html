@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your space | UPWISE</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("upwise-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+</head>
+<body hidden>
+<header class="site-header"><div class="wrap">
+<a class="brand" href="index.html">UPWISE</a>
+<div class="actions" style="margin-left:auto"><button id="logout" class="btn ghost small" type="button">Log out</button></div>
+</div></header>
+<main class="welcome">
+<h1>You&rsquo;re in.</h1>
+<p class="muted">Signed in as <strong id="who"></strong>.</p>
+<p class="muted">Your dashboard and AI assistant arrive in the next steps.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+</body>
+</html>
