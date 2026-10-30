@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reset password | UPWISE</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("upwise-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+</head>
+<body>
+<main class="auth">
+<a class="brand" href="index.html" aria-label="UPWISE home"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="var(--accent)"/><path d="M8 18l6-8 6 8" fill="none" stroke="var(--on-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>UPWISE</a>
+<div class="auth-card">
+<h1>Reset your password</h1>
+<p class="muted" style="margin:0">Enter your email and we will send a reset link.</p>
+<form id="forgot-form" novalidate>
+<label>Email<input id="email" type="email" autocomplete="email" required></label>
+<p id="msg" class="form-msg" role="status"></p>
+<button id="submit" class="btn primary" type="submit">Send reset link</button>
+</form>
+<div class="auth-links"><a href="login.html">Back to log in</a></div>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+</body>
+</html>
