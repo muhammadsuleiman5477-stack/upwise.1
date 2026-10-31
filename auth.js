@@ -78,4 +78,8 @@
     setTimeout(function () { location.href = "login.html"; }, 1500);
   });
 
+  // already signed in? skip the login and sign-up forms
+  if ($("login-form") || $("signup-form")) {
+    sb.auth.getSession().then(function (r) { if (r.data.session) location.replace("app.html"); });
+  }
 })();
