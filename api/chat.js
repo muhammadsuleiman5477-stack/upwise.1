@@ -13,6 +13,23 @@ For study help, explain concepts and guide the student rather than writing work 
 If someone seems to be in crisis or at risk of harm, respond with care and encourage them to contact local emergency services or someone they trust.
 Keep replies concise. Write in plain text only: do not use asterisks, hash headings, backticks or tables. Use short paragraphs, and numbered lines (1., 2., 3.) for steps.`;
 
+const STUCK_SYSTEM = `You are the "I'm Stuck" guide inside UPWISE. The person has a problem and does not know where to begin. Be supportive, practical and non-judgmental.
+Never invent facts, statistics, organisations, links or opportunities. If the answer depends on details you do not have, say what you would need to know. For medical, legal and financial matters give general educational guidance only and suggest a qualified professional for real decisions. If the person seems to be in crisis or at risk of harm, respond with care and encourage them to contact local emergency services or someone they trust.
+Write plain text only: no asterisks, hash headings, backticks or tables. Use exactly these six sections, each introduced by its own line in this form:
+=== Understanding ===
+2 or 3 sentences restating their situation in your own words.
+=== Main challenges ===
+2 to 4 short numbered lines.
+=== Options ===
+2 or 3 realistic approaches, each a numbered line with a one-line description.
+=== Comparison ===
+One line per option: its name, its main upside, its main downside.
+=== Recommendation ===
+One short paragraph saying which option fits best and why, and what could change that.
+=== Action plan ===
+5 to 7 numbered, concrete, small steps. The first step must be doable today. Add a rough timeframe in brackets where it helps.
+Keep the whole answer under 450 words.`;
+
 function rest(token, path, opts = {}) {
   return fetch(SB_URL + "/rest/v1/" + path, {
     ...opts,
@@ -47,13 +64,13 @@ function merge(history) {
 
 // Groq retired llama-3.3-70b-versatile on 16 Aug 2026; gpt-oss-120b is its recommended replacement.
 // gpt-oss spends part of the token budget on reasoning, so allow more tokens and keep reasoning short.
-function groqBody(model, system, history) {
-  const body = { model, max_completion_tokens: 2000, messages: [{ role: "system", content: system }, ...history] };
+function groqBody(model, system, history, maxTokens) {
+  const body = { model, max_completion_tokens: maxTokens * 2, messages: [{ role: "system", content: system }, ...history] };
   if (model.startsWith("openai/gpt-oss")) body.reasoning_effort = "low";
   return body;
 }
 
-async function callProvider(provider, primary, system, rawHistory) {
+async function callProvider(provider, primary, system, rawHistory, maxTokens) {
   // GROQ_MODEL / GEMINI_MODEL / ANTHROPIC_MODEL pick a model per provider; AI_MODEL applies to the first provider only
   const model = process.env[provider.toUpperCase() + "_MODEL"] || (primary ? process.env.AI_MODEL : undefined);
   const history = merge(rawHistory);
@@ -62,7 +79,7 @@ async function callProvider(provider, primary, system, rawHistory) {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: model || "claude-sonnet-5-5", max_tokens: 1000, system, messages: history }),
+      body: JSON.stringify({ model: model || "claude-sonnet-5-5", max_tokens: maxTokens, system, messages: history }),
     });
     const d = await r.json();
     if (!r.ok) throw new Error("anthropic " + r.status + ": " + JSON.stringify(d).slice(0, 300));
@@ -73,7 +90,7 @@ async function callProvider(provider, primary, system, rawHistory) {
     const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "content-type": "application/json", authorization: "Bearer " + process.env.GROQ_API_KEY },
-      body: JSON.stringify(groqBody(model || "openai/gpt-oss-120b", system, history)),
+      body: JSON.stringify(groqBody(model || "openai/gpt-oss-120b", system, history, maxTokens)),
     });
     const d = await r.json();
     if (!r.ok) throw new Error("groq " + r.status + ": " + JSON.stringify(d).slice(0, 300));
@@ -87,7 +104,7 @@ async function callProvider(provider, primary, system, rawHistory) {
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: history.map((h) => ({ role: h.role === "assistant" ? "model" : "user", parts: [{ text: h.content }] })),
-      generationConfig: { maxOutputTokens: 1000 },
+      generationConfig: { maxOutputTokens: maxTokens },
     }),
   });
   const d = await r.json();
@@ -96,12 +113,12 @@ async function callProvider(provider, primary, system, rawHistory) {
 }
 
 // Try each provider that has a key; if one fails, fall back to the next.
-async function callAI(system, history) {
+async function callAI(system, history, maxTokens = 1000) {
   const list = availableProviders();
   let lastError = new Error("no provider");
   for (let i = 0; i < list.length; i++) {
     try {
-      const reply = await callProvider(list[i], i === 0, system, history);
+      const reply = await callProvider(list[i], i === 0, system, history, maxTokens);
       if (reply) return reply;
       lastError = new Error(list[i] + " returned an empty answer");
     } catch (e) {
@@ -110,6 +127,40 @@ async function callAI(system, history) {
     console.error("AI provider failed:", lastError.message);
   }
   throw lastError;
+}
+
+async function profileContext(token, userId) {
+  try {
+    const p = await rest(token, `profiles?select=country,interests&id=eq.${userId}`);
+    const prof = ((await p.json()) || [])[0];
+    return prof
+      ? `\nAbout this user (use only when relevant): country code ${prof.country || "unknown"}; interests: ${(prof.interests || []).join(", ") || "none given"}.`
+      : "";
+  } catch (e) {
+    return "";
+  }
+}
+
+async function handleStuck(token, user, text, res) {
+  if (text.length > 2000) return res.status(400).json({ error: "Keep your description under 2000 characters." });
+  const since = new Date(Date.now() - 3600e3).toISOString();
+  const rl = await rest(token, `ai_usage?select=id&kind=eq.stuck&created_at=gte.${encodeURIComponent(since)}`, {
+    headers: { Prefer: "count=exact", Range: "0-0" },
+  });
+  const used = parseInt((rl.headers.get("content-range") || "").split("/")[1], 10);
+  if (used >= 10) return res.status(429).json({ error: "You have reached the hourly limit for I'm Stuck. Please try again later." });
+  const mark = await rest(token, "ai_usage", { method: "POST", body: JSON.stringify({ user_id: user.id, kind: "stuck" }) });
+  if (!mark.ok) throw new Error("db");
+  const context = await profileContext(token, user.id);
+  let reply;
+  try {
+    reply = await callAI(STUCK_SYSTEM + context, [{ role: "user", content: text }], 1800);
+  } catch (e) {
+    console.error("AI call failed:", e.message);
+    return res.status(502).json({ error: "The AI service had a problem. Try again in a moment." });
+  }
+  if (!reply) return res.status(502).json({ error: "The AI returned an empty answer. Try again." });
+  return res.status(200).json({ reply });
 }
 
 module.exports = async (req, res) => {
@@ -128,6 +179,7 @@ module.exports = async (req, res) => {
     const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
     const text = typeof body.message === "string" ? body.message.trim() : "";
     if (!text || text.length > 4000) return res.status(400).json({ error: "Write a message under 4000 characters." });
+    if (body.mode === "stuck") return handleStuck(token, user, text, res);
     let convId = body.conversation_id || null;
     if (convId && !/^[0-9a-f-]{36}$/i.test(String(convId))) return res.status(400).json({ error: "Bad conversation." });
 
@@ -161,11 +213,7 @@ module.exports = async (req, res) => {
     const h = await rest(token, `messages?select=role,content&conversation_id=eq.${convId}&order=created_at.desc&limit=20`);
     const history = (await h.json()).reverse();
 
-    const p = await rest(token, `profiles?select=country,interests&id=eq.${user.id}`);
-    const prof = ((await p.json()) || [])[0];
-    const context = prof
-      ? `\nAbout this user (use only when relevant): country code ${prof.country || "unknown"}; interests: ${(prof.interests || []).join(", ") || "none given"}.`
-      : "";
+    const context = await profileContext(token, user.id);
 
     let reply;
     try {
