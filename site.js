@@ -28,3 +28,11 @@
     });
   }
 })();
+
+(function () {
+  try {
+    if (!localStorage.getItem("sb-psbwkkkchfxuordslfps-auth-token")) return;
+    document.querySelectorAll('a[href="login.html"]').forEach(function (a) { a.hidden = true; });
+    document.querySelectorAll('a[href="signup.html"]').forEach(function (a) { a.href = "app.html"; a.textContent = "Open app"; });
+  } catch (e) {}
+})();
