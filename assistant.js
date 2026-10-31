@@ -5,10 +5,19 @@
   var convId = null, busy = false;
   var STARTERS = ["Help me plan my study week", "Explain compound interest simply", "I don't know which career to choose"];
 
+  function setText(node, text) {
+    node.textContent = "";
+    text = String(text).replace(/^#{1,6}\s+/gm, "").replace(/^\s*[*-]\s+/gm, "\u2022 ").replace(/`/g, "");
+    text.split(/(\*\*[^*\n]+\*\*)/g).forEach(function (part) {
+      if (/^\*\*[^*\n]+\*\*$/.test(part)) {
+        var b = document.createElement("strong"); b.textContent = part.slice(2, -2); node.appendChild(b);
+      } else node.appendChild(document.createTextNode(part.replace(/\*/g, "")));
+    });
+  }
   function add(cls, text) {
     var d = document.createElement("div");
     d.className = "bubble " + cls;
-    d.textContent = text;
+    if (cls === "ai") setText(d, text); else d.textContent = text;
     log.appendChild(d);
     log.scrollTop = log.scrollHeight;
     return d;
@@ -48,7 +57,7 @@
       var data = await r.json().catch(function () { return {}; });
       if (!r.ok) throw new Error(data.error || "Something went wrong.");
       convId = data.conversation_id;
-      wait.textContent = data.reply;
+      setText(wait, data.reply);
     } catch (err) {
       wait.className = "bubble err";
       wait.textContent = (err.message || "Something went wrong.") + " Try again.";
