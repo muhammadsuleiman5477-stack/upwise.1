@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Everyday tools | UPWISE</title>
+<meta name="description" content="Free calculators, a unit converter, date and time tools, a checklist maker and a CV builder.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("upwise-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="brand" href="index.html">UPWISE</a>
+<div class="actions" style="margin-left:auto"><a class="btn ghost small" href="app.html">Dashboard</a></div>
+</div></header>
+<main class="page">
+<h1>Everyday tools</h1>
+<p class="muted">Quick tools that work right here. Nothing you type leaves your device.</p>
+<div class="tabs" role="tablist" id="picker">
+<button type="button" role="tab" data-tool="percent" aria-selected="true">Percentage</button>
+<button type="button" role="tab" data-tool="units" aria-selected="false">Units</button>
+<button type="button" role="tab" data-tool="time" aria-selected="false">Dates and time</button>
+<button type="button" role="tab" data-tool="list" aria-selected="false">Checklist</button>
+<button type="button" role="tab" data-tool="cv" aria-selected="false">CV builder</button>
+</div>
+
+<section id="panel-percent" class="panel card">
+<h2>Percentage calculator</h2>
+<label class="stack">What do you want to find?
+<select id="pc-mode" class="field"><option value="of">X% of a number</option><option value="what">X is what % of Y</option><option value="change">% change from X to Y</option></select></label>
+<div class="row">
+<label class="stack"><span id="pc-la">Percentage (X)</span><input id="pc-a" class="field" type="number" step="any" inputmode="decimal"></label>
+<label class="stack"><span id="pc-lb">Number (Y)</span><input id="pc-b" class="field" type="number" step="any" inputmode="decimal"></label>
+</div>
+<p class="result" id="pc-out" role="status">Enter two numbers.</p>
+</section>
+
+<section id="panel-units" class="panel card" hidden>
+<h2>Unit converter</h2>
+<label class="stack">Type<select id="u-cat" class="field"></select></label>
+<label class="stack">Value<input id="u-val" class="field" type="number" step="any" inputmode="decimal" value="1"></label>
+<div class="row">
+<label class="stack">From<select id="u-from" class="field"></select></label>
+<label class="stack">To<select id="u-to" class="field"></select></label>
+</div>
+<p class="result" id="u-out" role="status"></p>
+</section>
+
+<section id="panel-time" class="panel card" hidden>
+<h2>Dates and time</h2>
+<h3>Days between two dates</h3>
+<div class="row">
+<label class="stack">From<input id="dd-1" class="field" type="date"></label>
+<label class="stack">To<input id="dd-2" class="field" type="date"></label>
+</div>
+<p class="result" id="dd-out" role="status">Pick two dates.</p>
+<h3>Add or subtract days</h3>
+<div class="row">
+<label class="stack">Start date<input id="ad-d" class="field" type="date"></label>
+<label class="stack">Days (use a minus to go back)<input id="ad-n" class="field" type="number" step="1" inputmode="numeric"></label>
+</div>
+<p class="result" id="ad-out" role="status">Pick a date and a number of days.</p>
+<h3>Time between two times</h3>
+<div class="row">
+<label class="stack">Start<input id="tt-1" class="field" type="time"></label>
+<label class="stack">End<input id="tt-2" class="field" type="time"></label>
+</div>
+<p class="result" id="tt-out" role="status">Pick two times. If the end is earlier, it counts past midnight.</p>
+</section>
+
+<section id="panel-list" class="panel card" hidden>
+<h2>Checklist maker</h2>
+<label class="stack">One item per line
+<textarea id="cl-in" class="field" rows="5" placeholder="Passport&#10;Printed application&#10;Phone charger"></textarea></label>
+<div class="card-actions" style="margin:10px 0">
+<button id="cl-make" class="btn primary small" type="button">Make checklist</button>
+<button id="cl-copy" class="btn ghost small" type="button">Copy</button>
+<button id="cl-clear" class="btn ghost small" type="button">Clear</button>
+</div>
+<p class="meta" id="cl-prog" role="status"></p>
+<ul class="steps" id="cl-list"></ul>
+</section>
+
+<section id="panel-cv" class="panel card" hidden>
+<h2>CV builder</h2>
+<label class="stack">Full name<input id="cv-name" class="field" type="text" maxlength="80" autocomplete="name"></label>
+<label class="stack">Contact line (email, phone, city)<input id="cv-contact" class="field" type="text" maxlength="160"></label>
+<label class="stack">Summary<textarea id="cv-sum" class="field" rows="3" maxlength="600"></textarea></label>
+<label class="stack">Experience<textarea id="cv-exp" class="field" rows="5" maxlength="2000"></textarea></label>
+<label class="stack">Education<textarea id="cv-edu" class="field" rows="3" maxlength="1000"></textarea></label>
+<label class="stack">Skills<textarea id="cv-skills" class="field" rows="2" maxlength="500"></textarea></label>
+<p class="form-msg" id="cv-msg" role="status"></p>
+<div class="card-actions">
+<button id="cv-go" class="btn primary small" type="button">Preview CV</button>
+<button id="cv-print" class="btn ghost small" type="button" disabled>Print or save as PDF</button>
+</div>
+<div id="cv-out" hidden></div>
+</section>
+
+<p class="muted" style="margin-top:26px;font-size:15px">The text summariser and email assistant need AI, so they arrive with the AI assistant.</p>
+</main>
+<script src="tools.js"></script>
+</body>
+</html>
