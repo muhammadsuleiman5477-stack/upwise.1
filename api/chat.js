@@ -1,6 +1,6 @@
 // POST /api/chat  (Vercel serverless function)
 // Checks the user's login, saves messages under Row Level Security using the user's own token,
-// and calls the AI. Only ANTHROPIC_API_KEY is secret, and it lives in Vercel's environment variables.
+// and calls the AI. AI keys are secret and live only in Vercel's environment variables.
 
 const SB_URL = "https://psbwkkkchfxuordslfps.supabase.co";
 const SB_KEY = "sb_publishable_LfP4Zf3yaWYDWgqnFXRlGA_VVXSeq8-"; // publishable key, safe to include
@@ -25,10 +25,70 @@ function rest(token, path, opts = {}) {
   });
 }
 
+function pickProvider() {
+  const want = (process.env.AI_PROVIDER || "").toLowerCase();
+  const keys = { groq: process.env.GROQ_API_KEY, gemini: process.env.GEMINI_API_KEY, anthropic: process.env.ANTHROPIC_API_KEY };
+  if (keys[want]) return want;
+  return ["groq", "gemini", "anthropic"].find((k) => keys[k]) || null;
+}
+
+// merge neighbouring messages from the same role (some providers require alternating turns)
+function merge(history) {
+  const out = [];
+  for (const m of history) {
+    const last = out[out.length - 1];
+    if (last && last.role === m.role) last.content += "\n\n" + m.content;
+    else out.push({ role: m.role, content: m.content });
+  }
+  return out;
+}
+
+async function callAI(system, rawHistory) {
+  const provider = pickProvider();
+  const model = process.env.AI_MODEL;
+  const history = merge(rawHistory);
+
+  if (provider === "anthropic") {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: model || "claude-sonnet-5-5", max_tokens: 1000, system, messages: history }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error("anthropic " + r.status + ": " + JSON.stringify(d).slice(0, 300));
+    return (d.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+  }
+
+  if (provider === "groq") {
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer " + process.env.GROQ_API_KEY },
+      body: JSON.stringify({ model: model || "llama-3.3-70b-versatile", max_tokens: 1000, messages: [{ role: "system", content: system }, ...history] }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error("groq " + r.status + ": " + JSON.stringify(d).slice(0, 300));
+    return String(((d.choices || [])[0] || {}).message?.content || "").trim();
+  }
+
+  const m = model || "gemini-2.5-flash";
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(m) + ":generateContent", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: history.map((h) => ({ role: h.role === "assistant" ? "model" : "user", parts: [{ text: h.content }] })),
+      generationConfig: { maxOutputTokens: 1000 },
+    }),
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error("gemini " + r.status + ": " + JSON.stringify(d).slice(0, 300));
+  return (((d.candidates || [])[0] || {}).content?.parts || []).map((p) => p.text || "").join("\n").trim();
+}
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: "The assistant is not set up yet. Add ANTHROPIC_API_KEY in Vercel and redeploy." });
+  if (!pickProvider()) {
+    return res.status(500).json({ error: "The assistant is not set up yet. Add an AI key (GROQ_API_KEY, GEMINI_API_KEY or ANTHROPIC_API_KEY) in Vercel and redeploy." });
   }
   const token = (req.headers.authorization || "").replace(/^Bearer /i, "");
   if (!token) return res.status(401).json({ error: "Please log in again." });
@@ -80,18 +140,13 @@ module.exports = async (req, res) => {
       ? `\nAbout this user (use only when relevant): country code ${prof.country || "unknown"}; interests: ${(prof.interests || []).join(", ") || "none given"}.`
       : "";
 
-    const ai = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({ model: "claude-sonnet-5-5", max_tokens: 1000, system: SYSTEM + context, messages: history }),
-    });
-    const data = await ai.json();
-    if (!ai.ok) return res.status(502).json({ error: "The AI service had a problem. Try again in a moment." });
-    const reply = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+    let reply;
+    try {
+      reply = await callAI(SYSTEM + context, history);
+    } catch (e) {
+      console.error("AI call failed:", e.message);
+      return res.status(502).json({ error: "The AI service had a problem. Try again in a moment." });
+    }
     if (!reply) return res.status(502).json({ error: "The AI returned an empty answer. Try again." });
 
     await rest(token, "messages", {
