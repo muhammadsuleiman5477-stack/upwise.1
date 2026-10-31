@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Money tools | UPWISE</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("upwise-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+</head>
+<body hidden>
+<header class="site-header"><div class="wrap">
+<a class="brand" href="app.html">UPWISE</a>
+<div class="actions" style="margin-left:auto"><a class="btn ghost small" href="app.html">Dashboard</a></div>
+</div></header>
+<main class="page">
+<h1>Money tools</h1>
+<p class="muted">Educational tools and estimates, not financial advice. Your records are private to you.</p>
+<label class="date-label" style="max-width:220px;margin-top:10px">Currency for your records
+<select id="cur" class="field"></select></label>
+<div class="tabs" role="tablist">
+<button id="tab-over" type="button" role="tab" aria-selected="true">Overview</button>
+<button id="tab-budget" type="button" role="tab" aria-selected="false">Budget</button>
+<button id="tab-save" type="button" role="tab" aria-selected="false">Savings</button>
+<button id="tab-learn" type="button" role="tab" aria-selected="false">Learn</button>
+</div>
+<p id="msg" class="form-msg" role="status"></p>
+
+<section id="pane-over">
+<div class="month-nav">
+<button id="m-prev" class="btn ghost small" type="button" aria-label="Previous month">&lsaquo;</button>
+<strong id="m-label"></strong>
+<button id="m-next" class="btn ghost small" type="button" aria-label="Next month">&rsaquo;</button>
+</div>
+<div class="sum-grid">
+<div class="sum"><small>Income</small><b id="s-in">0</b></div>
+<div class="sum"><small>Spent</small><b id="s-out">0</b></div>
+<div class="sum"><small>Left</small><b id="s-bal">0</b></div>
+</div>
+<form id="tx-form" class="inline-form">
+<label class="date-label">Type<select id="tx-kind" class="field"><option value="expense">Expense</option><option value="income">Income</option></select></label>
+<label class="date-label">Amount<input id="tx-amt" class="field" type="number" step="0.01" min="0" inputmode="decimal"></label>
+<label class="date-label">Category<select id="tx-cat" class="field"></select></label>
+<label class="date-label">Date<input id="tx-date" class="field" type="date"></label>
+<input id="tx-note" class="field" type="text" maxlength="120" placeholder="Note (optional)" aria-label="Note">
+<button class="btn primary small" type="submit">Add</button>
+</form>
+<div class="card"><h3 style="margin-top:0">Where it went</h3><div id="cat-bars"></div></div>
+<div class="card"><h3 style="margin-top:0">This month</h3><div id="tx-list"></div></div>
+</section>
+
+<section id="pane-budget" hidden>
+<p class="muted">Set a monthly limit for a category. Progress follows the month you chose on Overview.</p>
+<form id="bud-form" class="inline-form">
+<label class="date-label">Category<select id="bd-cat" class="field"></select></label>
+<label class="date-label">Monthly limit<input id="bd-lim" class="field" type="number" step="0.01" min="0" inputmode="decimal"></label>
+<button class="btn primary small" type="submit">Save budget</button>
+</form>
+<div id="bud-list"></div>
+</section>
+
+<section id="pane-save" hidden>
+<div class="card">
+<h2 style="font-size:24px">Savings goal calculator</h2>
+<label class="stack">Goal amount<input id="sv-goal" class="field" type="number" step="0.01" min="0" inputmode="decimal"></label>
+<label class="stack">Already saved<input id="sv-have" class="field" type="number" step="0.01" min="0" inputmode="decimal" value="0"></label>
+<div class="row">
+<label class="stack">Can save per month<input id="sv-mon" class="field" type="number" step="0.01" min="0" inputmode="decimal"></label>
+<label class="stack">Or: months available<input id="sv-months" class="field" type="number" step="1" min="1" inputmode="numeric"></label>
+</div>
+<p class="result" id="sv-out" role="status">Enter your goal and one of the two options.</p>
+<p class="meta">This is a simple estimate. It ignores interest and changes in prices.</p>
+</div>
+</section>
+
+<section id="pane-learn" hidden>
+<div class="card">
+<h3 style="margin-top:0">Money basics</h3>
+<ul class="tips">
+<li>Track your spending for a month before you try to cut anything.</li>
+<li>A common rule of thumb is about half for needs, a third for wants and the rest for savings. Adjust it to your situation.</li>
+<li>Build a small emergency buffer first, even a little each week.</li>
+<li>Be careful with anything that promises guaranteed or very fast returns. That is a common sign of a scam.</li>
+<li>Before borrowing, find out the full cost and the repayment terms.</li>
+</ul>
+<p class="meta">General education only. For decisions about loans, investing or tax, speak to a qualified professional.</p>
+</div>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+<script src="money.js"></script>
+</body>
+</html>
