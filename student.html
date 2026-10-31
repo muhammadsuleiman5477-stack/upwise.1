@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Student tools | UPWISE</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("upwise-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+</head>
+<body hidden>
+<header class="site-header"><div class="wrap">
+<a class="brand" href="app.html">UPWISE</a>
+<div class="actions" style="margin-left:auto"><a class="btn ghost small" href="app.html">Dashboard</a></div>
+</div></header>
+<main class="page">
+<h1>Student tools</h1>
+<p class="muted">Plan calmly, one day at a time.</p>
+<div class="tabs" role="tablist">
+<button id="tab-exams" type="button" role="tab" aria-selected="true">Exams</button>
+<button id="tab-tasks" type="button" role="tab" aria-selected="false">Assignments</button>
+<button id="tab-plan" type="button" role="tab" aria-selected="false">Timetable</button>
+<button id="tab-focus" type="button" role="tab" aria-selected="false">Focus</button>
+</div>
+<p id="msg" class="form-msg" role="status"></p>
+
+<section id="pane-exams">
+<form id="exam-form" class="inline-form">
+<input id="ex-subject" class="field" type="text" maxlength="80" placeholder="Subject or exam" aria-label="Subject or exam">
+<label class="date-label">Exam date<input id="ex-date" class="field" type="date"></label>
+<button class="btn primary small" type="submit">Add exam</button>
+</form>
+<div id="exam-list"></div>
+</section>
+
+<section id="pane-tasks" hidden>
+<form id="task-form" class="inline-form">
+<input id="as-title" class="field" type="text" maxlength="120" placeholder="Assignment" aria-label="Assignment">
+<input id="as-subject" class="field" type="text" maxlength="80" placeholder="Subject (optional)" aria-label="Subject">
+<label class="date-label">Due date (optional)<input id="as-due" class="field" type="date"></label>
+<button class="btn primary small" type="submit">Add</button>
+</form>
+<p class="meta" id="task-prog"></p>
+<ul class="steps card" id="task-list" style="padding:4px 16px"></ul>
+</section>
+
+<section id="pane-plan" hidden>
+<form id="block-form" class="inline-form">
+<input id="bl-subject" class="field" type="text" maxlength="80" placeholder="Subject to study" aria-label="Subject to study">
+<label class="date-label">Day<select id="bl-day" class="field">
+<option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select></label>
+<label class="date-label">Start<input id="bl-start" class="field" type="time"></label>
+<label class="date-label">End<input id="bl-end" class="field" type="time"></label>
+<button class="btn primary small" type="submit">Add block</button>
+</form>
+<div id="plan-list"></div>
+</section>
+
+<section id="pane-focus" hidden>
+<div class="card" style="text-align:center">
+<p class="meta" id="t-label">Focus</p>
+<div class="timer" id="t-time" aria-live="off">25:00</div>
+<div class="card-actions" style="justify-content:center">
+<button id="t-go" class="btn primary small" type="button">Start</button>
+<button id="t-reset" class="btn ghost small" type="button">Reset</button>
+</div>
+<div class="card-actions" style="justify-content:center;margin-top:10px">
+<button class="btn ghost small" type="button" data-mode="Focus" data-min="25">Focus 25</button>
+<button class="btn ghost small" type="button" data-mode="Short break" data-min="5">Break 5</button>
+<button class="btn ghost small" type="button" data-mode="Long break" data-min="15">Long break 15</button>
+</div>
+<p class="meta" id="t-note" role="status" style="margin-top:12px">Focus sessions finished today: 0</p>
+</div>
+<div class="card">
+<h3 style="margin-top:0">Study techniques worth trying</h3>
+<ul class="tips">
+<li>Active recall: close the book and write what you remember, then check.</li>
+<li>Spaced repetition: review the same topic over several days, not in one night.</li>
+<li>Past questions: practise under timed conditions, then mark honestly.</li>
+<li>Teach it back: explain a topic out loud in simple words.</li>
+<li>Short blocks with real breaks beat long, tired sessions.</li>
+</ul>
+</div>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+<script src="student.js"></script>
+</body>
+</html>
