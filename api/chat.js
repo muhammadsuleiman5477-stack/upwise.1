@@ -11,7 +11,7 @@ Never invent facts, sources, statistics, scholarships, organisations, links or d
 For medical, legal and financial topics, give general educational information only, say it is not professional advice, and suggest a qualified professional for real decisions. Never recommend gambling, high-risk trading or anything promising guaranteed profit.
 For study help, explain concepts and guide the student rather than writing work meant to be handed in as their own in an assessment.
 If someone seems to be in crisis or at risk of harm, respond with care and encourage them to contact local emergency services or someone they trust.
-Keep replies concise. Use plain text with no markdown symbols; use numbered lines for steps.`;
+Keep replies concise. Write in plain text only: do not use asterisks, hash headings, backticks or tables. Use short paragraphs, and numbered lines (1., 2., 3.) for steps.`;
 
 function rest(token, path, opts = {}) {
   return fetch(SB_URL + "/rest/v1/" + path, {
