@@ -1,7 +1,7 @@
 // UPWISE service worker.
 // Network first: you always get the newest version when online, and pages you have visited
 // still open when offline. It never touches /api/ calls or other sites (login and database).
-const CACHE = "upwise-v1";
+const CACHE = "upwise-v2";
 const PRECACHE = [
   "/", "/index.html", "/offline.html", "/styles.css", "/site.js", "/pwa.js",
   "/tools.html", "/tools.js", "/privacy.html", "/terms.html", "/contact.html",
@@ -42,5 +42,15 @@ self.addEventListener("fetch", (e) => {
       .catch(() =>
         caches.match(req).then((hit) => hit || (req.mode === "navigate" ? caches.match("/offline.html") : Response.error()))
       )
+  );
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) { if ("focus" in c) return c.focus(); }
+      return self.clients.openWindow("/app.html");
+    })
   );
 });
