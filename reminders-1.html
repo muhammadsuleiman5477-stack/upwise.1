@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reminders | UPWISE</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("upwise-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+</head>
+<body hidden>
+<header class="site-header"><div class="wrap">
+<a class="brand" href="app.html">UPWISE</a>
+<div class="actions" style="margin-left:auto"><a class="btn ghost small" href="app.html">Dashboard</a></div>
+</div></header>
+<main class="page">
+<h1>Reminders</h1>
+<p class="muted">Alerts appear while UPWISE is open. If you were away, you will see what you missed when you come back. Alerts while the app is closed need push notifications, which are not set up yet.</p>
+<p id="msg" class="form-msg" role="status"></p>
+
+<section class="card">
+<h3 style="margin-top:0">New reminder</h3>
+<form id="rem-form" novalidate>
+<label class="stack">What should we remind you about?<input id="rem-title" class="field" type="text" maxlength="120"></label>
+<label class="stack">When<input id="rem-when" class="field" type="datetime-local"></label>
+<div class="card-actions" style="margin-bottom:12px">
+<button class="btn ghost small" type="button" data-in="15">In 15 minutes</button>
+<button class="btn ghost small" type="button" data-in="60">In 1 hour</button>
+<button class="btn ghost small" type="button" data-in="tomorrow">Tomorrow 8:00</button>
+</div>
+<button class="btn primary small" type="submit">Add reminder</button>
+</form>
+</section>
+
+<section class="card">
+<h3 style="margin-top:0">From my exams and assignments</h3>
+<label class="stack">When should I remind you?
+<select id="auto-when" class="field"><option value="eve">The day before, at 6 pm</option><option value="morn">The morning of, at 8 am</option></select></label>
+<button id="auto-go" class="btn ghost small" type="button">Create reminders</button>
+</section>
+
+<h2 style="font-size:24px;margin:26px 0 10px">Upcoming</h2>
+<div id="upcoming"></div>
+
+<h2 style="font-size:24px;margin:26px 0 10px">Notification centre</h2>
+<div id="centre"></div>
+
+<section class="card" style="margin-top:26px">
+<h3 style="margin-top:0">Alert settings</h3>
+<p class="meta">These settings are saved on this device.</p>
+<button id="perm" class="btn ghost small" type="button">Turn on notifications</button>
+<p class="meta" id="perm-state"></p>
+<label class="stack" style="margin-top:12px">Sound
+<select id="snd" class="field"><option value="off">Off (silent)</option><option value="chime">Soft chime</option><option value="bell">Bell</option><option value="pulse">Pulse</option><option value="fanfare">Fanfare</option><option value="alarm">Loud alarm</option><option value="clock">Digital alarm clock</option><option value="siren">Siren</option><option value="emergency">Emergency two-tone</option><option value="rising">Rising wake-up</option><option value="ultra">Ultra loud</option></select></label>
+<label class="stack">Volume<input id="vol" type="range" min="0.1" max="1" step="0.05"></label>
+<p class="meta">At the far right it is very loud, and Ultra loud is the loudest. It cannot go beyond what your phone speaker can play. Your phone&rsquo;s own media volume also has to be turned up.</p>
+<div class="toggle-row"><input id="rep" type="checkbox"><label for="rep">Repeat until I stop it (up to 1 minute)</label></div>
+<button id="prev" class="btn ghost small" type="button">Preview sound</button>
+<div class="toggle-row" style="margin-top:16px"><input id="qon" type="checkbox"><label for="qon">Quiet hours: no sound or system notification</label></div>
+<div class="row">
+<label class="stack">From<input id="qs" class="field" type="time"></label>
+<label class="stack">Until<input id="qe" class="field" type="time"></label>
+</div>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+<script src="alerts.js"></script>
+<script src="reminders.js"></script>
+<script src="pwa.js"></script>
+</body>
+</html>
