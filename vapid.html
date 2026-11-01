@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Key generator | UPWISE</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="page">
+<h1>Push key generator</h1>
+<p class="muted">A one-time setup tool. It creates your notification keys inside this browser tab. Nothing is sent anywhere. Delete this file from GitHub when you are done.</p>
+<button id="gen" class="btn primary" type="button">Generate keys</button>
+<div id="out" hidden>
+<h3>1. Public key</h3>
+<p class="meta">Vercel name: VAPID_PUBLIC_KEY</p>
+<textarea id="pub" class="field" rows="3" readonly></textarea>
+<button class="btn ghost small" data-copy="pub" type="button" style="margin-top:8px">Copy public key</button>
+<h3>2. Private key (keep secret)</h3>
+<p class="meta">Vercel name: VAPID_PRIVATE_KEY. Never share it or put it in GitHub.</p>
+<textarea id="priv" class="field" rows="2" readonly></textarea>
+<button class="btn ghost small" data-copy="priv" type="button" style="margin-top:8px">Copy private key</button>
+<p id="msg" class="form-msg ok" role="status"></p>
+</div>
+</main>
+<script>
+function b64url(bytes) {
+  var s = ""; for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+document.getElementById("gen").addEventListener("click", async function () {
+  var kp = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+  var pub = new Uint8Array(await crypto.subtle.exportKey("raw", kp.publicKey));
+  var jwk = await crypto.subtle.exportKey("jwk", kp.privateKey);
+  document.getElementById("pub").value = b64url(pub);
+  document.getElementById("priv").value = jwk.d;
+  document.getElementById("out").hidden = false;
+});
+document.querySelectorAll("[data-copy]").forEach(function (b) {
+  b.addEventListener("click", async function () {
+    var t = document.getElementById(b.dataset.copy);
+    try { await navigator.clipboard.writeText(t.value); document.getElementById("msg").textContent = "Copied."; }
+    catch (e) { t.select(); document.getElementById("msg").textContent = "Select the text and copy it manually."; }
+  });
+});
+</script>
+</body>
+</html>
