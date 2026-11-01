@@ -92,7 +92,10 @@
     var p = await loadProfile(user.id);
     if (!p || !p.onboarded) { location.href = "onboarding.html"; return; }
     var first = (p.display_name || "").split(" ")[0];
-    $("greet").textContent = first ? "Welcome, " + first + "." : "Welcome.";
+    var hour = 12;
+    try { hour = parseInt(new Intl.DateTimeFormat("en", { hour: "numeric", hour12: false, timeZone: p.timezone }).format(new Date()), 10) % 24; } catch (e) { hour = new Date().getHours(); }
+    var hello = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    $("greet").textContent = first ? hello + ", " + first + "." : hello + ".";
     var d;
     try { d = new Intl.DateTimeFormat("en", { dateStyle: "full", timeZone: p.timezone }).format(new Date()); }
     catch (e) { d = new Intl.DateTimeFormat("en", { dateStyle: "full" }).format(new Date()); }
