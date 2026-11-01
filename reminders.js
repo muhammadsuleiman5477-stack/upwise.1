@@ -143,7 +143,7 @@
       var r = await fetch("/api/push-test", { method: "POST", headers: { Authorization: "Bearer " + s2.data.session.access_token } });
       var d = await r.json().catch(function () { return {}; });
       if (!r.ok) { pushSay(d.error || "The test could not be sent."); return; }
-      pushSay(d.sent ? "Test sent. A notification should appear in a moment, even if you leave the app." : "The test could not be delivered. Try turning background alerts off and on again.");
+      pushSay(d.sent ? "Test sent. A notification should appear in a moment, even if you leave the app." : "The test could not be delivered" + (d.errors && d.errors[0] ? " (" + d.errors[0] + ")" : "") + ". Try turning background alerts off and on again.");
     } catch (e) { pushSay("The test could not be sent. Check your connection."); }
   });
 
