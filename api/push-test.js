@@ -37,6 +37,12 @@ module.exports = async (req, res) => {
       } catch (e) {
         failed++;
         errors.push((e.statusCode || "?") + ": " + String(e.body || e.message).slice(0, 140));
+        if (e.statusCode === 404 || e.statusCode === 410) {
+          // this device registration is dead: remove it so the app can register a fresh one
+          await fetch(SB_URL + "/rest/v1/push_subscriptions?endpoint=eq." + encodeURIComponent(s.endpoint), {
+            method: "DELETE", headers: { apikey: SB_KEY, Authorization: "Bearer " + token },
+          }).catch(() => {});
+        }
         console.error("push test failed:", e.statusCode, e.body || e.message);
       }
     }
