@@ -209,5 +209,9 @@
     setInterval(tick, 20000);
     document.addEventListener("visibilitychange", function () { if (!document.hidden) tick(); });
     window.addEventListener("online", tick);
+    if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message", function (ev) {
+      var d = ev.data;
+      if (d && d.type === "reminder") { notify({ id: d.id, title: d.title || "Reminder", remind_at: d.remind_at || new Date().toISOString() }, false); }
+    });
   })();
 })();
