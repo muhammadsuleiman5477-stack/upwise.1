@@ -1,8 +1,9 @@
 (function () {
   var sb = window.upwise.sb, uid = null, busy = false;
   var KEY = "upwise-alerts";
-  var S = { sound: "off", volume: 0.4, repeat: false, quietOn: false, qs: "22:00", qe: "07:00" };
+  var S = { sound: "off", volume: 0.4, repeatMin: 0, vibrate: true, vibPattern: "long", quietOn: false, qs: "22:00", qe: "07:00" };
   try { var saved = JSON.parse(localStorage.getItem(KEY) || "{}"); for (var k in saved) S[k] = saved[k]; } catch (e) {}
+  if (typeof saved === "object" && saved && saved.repeatMin === undefined && saved.repeat) S.repeatMin = 1; // older saved settings
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
   /* ---- sound: made in the browser, never plays unless the person chose a sound ---- */
@@ -71,12 +72,29 @@
     bus(a).gain.value = BOOST[kind] || 1;
     SOUNDS[kind](Math.min(Math.max(Number(S.volume) || 0.4, 0.05), 1) * 0.95); // the volume slider goes all the way to full
   }
-  function stopSound() { if (loopTimer) clearInterval(loopTimer); loopTimer = null; }
-  function startSound(kind) {
-    stopSound(); play(kind);
-    if (S.repeat) {
-      var n = 0;
-      loopTimer = setInterval(function () { n++; if (n >= 20) { stopSound(); return; } play(kind); }, 3000);
+  var VIB = {
+    short: [300, 150, 300],
+    long: [800, 300, 800, 300, 800],
+    sos: [200, 100, 200, 100, 200, 300, 600, 100, 600, 100, 600, 300, 200, 100, 200, 100, 200]
+  };
+  function vibrateOnce() {
+    try { return !!(navigator.vibrate && navigator.vibrate(VIB[S.vibPattern] || VIB.long)); } catch (e) { return false; }
+  }
+  function stopSound() {
+    if (loopTimer) clearInterval(loopTimer); loopTimer = null;
+    try { if (navigator.vibrate) navigator.vibrate(0); } catch (e) {}
+  }
+  function pulse() {
+    if (S.sound !== "off") play(S.sound);
+    if (S.vibrate) vibrateOnce();
+  }
+  // sounds and vibrates now, then repeats every few seconds for the chosen number of minutes
+  function startAlert() {
+    stopSound(); pulse();
+    if (S.repeatMin > 0) {
+      var end = Date.now() + S.repeatMin * 60000;
+      var gap = Math.max(3000, (VIB[S.vibPattern] || VIB.long).reduce(function (a, b) { return a + b; }, 0) + 800);
+      loopTimer = setInterval(function () { if (Date.now() >= end) { stopSound(); return; } pulse(); }, gap);
     }
   }
 
@@ -132,8 +150,8 @@
       done(card);
     });
     r.appendChild(sn); r.appendChild(dm);
-    if (!late && S.sound !== "off" && S.repeat) {
-      var st = el("button", "btn ghost small", "Stop sound"); st.type = "button";
+    if (!late && S.repeatMin > 0 && (S.sound !== "off" || S.vibrate)) {
+      var st = el("button", "btn ghost small", "Stop alarm"); st.type = "button";
       st.addEventListener("click", stopSound); r.appendChild(st);
     }
     card.appendChild(r);
@@ -143,7 +161,7 @@
     showAlert(rem, late);
     if (late || quiet()) return;
     sysNotify(rem);
-    if (S.sound !== "off") { startSound(S.sound); try { if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 600]); } catch (e) {} }
+    if (S.sound !== "off" || S.vibrate) startAlert();
   }
 
   /* ---- checking for due reminders ---- */
@@ -181,7 +199,7 @@
     var a = el("a", null, "Manage reminders"); a.href = "reminders.html"; a.style.color = "var(--accent)"; box.appendChild(a);
   }
 
-  window.upwiseAlerts = { settings: S, save: save, play: play, stop: stopSound, permission: permission, check: tick, quiet: quiet };
+  window.upwiseAlerts = { settings: S, save: save, play: play, stop: stopSound, vibrate: vibrateOnce, start: startAlert, permission: permission, check: tick, quiet: quiet };
 
   (async function init() {
     var s = await sb.auth.getSession();
