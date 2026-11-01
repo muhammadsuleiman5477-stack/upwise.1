@@ -25,6 +25,7 @@ module.exports = async (req, res) => {
 
     webpush.setVapidDetails("mailto:upwiseai1@gmail.com", process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
     let sent = 0, failed = 0;
+    const errors = [];
     for (const s of subs) {
       try {
         await webpush.sendNotification(
@@ -33,9 +34,13 @@ module.exports = async (req, res) => {
           { TTL: 300, urgency: "high" }
         );
         sent++;
-      } catch (e) { failed++; console.error("push test failed:", e.statusCode, e.body || e.message); }
+      } catch (e) {
+        failed++;
+        errors.push((e.statusCode || "?") + ": " + String(e.body || e.message).slice(0, 140));
+        console.error("push test failed:", e.statusCode, e.body || e.message);
+      }
     }
-    return res.status(200).json({ sent, failed });
+    return res.status(200).json({ sent, failed, errors });
   } catch (e) {
     return res.status(500).json({ error: "Something went wrong on our side. Try again." });
   }
