@@ -115,20 +115,27 @@
       pushSay(pushSub ? "Background alerts are on for this device." : "Background alerts are off.");
     } catch (e) { pushSay("Could not check background alerts."); }
   }
-  $("push-on").addEventListener("click", async function () {
+  async function enablePush() {
     pushSay("Setting up\u2026");
     try {
-      if ((await A.permission()) !== "granted") { pushSay("Allow notifications first. If they are blocked, turn them on in your browser's site settings."); return; }
+      if ((await A.permission()) !== "granted") { pushSay("Allow notifications first. If they are blocked, turn them on in your browser's site settings."); return false; }
       var k = await (await fetch("/api/push-key")).json();
-      if (!k.key) { pushSay("The server is not set up for background alerts yet."); return; }
+      if (!k.key) { pushSay("The server is not set up for background alerts yet."); return false; }
       var reg = await navigator.serviceWorker.ready;
-      pushSub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(k.key) }));
+      // always start fresh, so the registration matches the server's current key
+      var old = await reg.pushManager.getSubscription();
+      if (old) { try { await old.unsubscribe(); await sb.from("push_subscriptions").delete().eq("endpoint", old.endpoint); } catch (e) {} }
+      pushSub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(k.key) });
       var j = pushSub.toJSON();
       var row = prefs(); row.user_id = uid; row.endpoint = j.endpoint; row.p256dh = j.keys.p256dh; row.auth = j.keys.auth;
       var r = await sb.from("push_subscriptions").upsert(row, { onConflict: "endpoint" });
-      if (r.error) { pushSay("Could not save this device: " + r.error.message); return; }
-      pushUi(true); pushSay("Background alerts are on for this device. Tap Send a test.");
-    } catch (e) { pushSay("Could not turn on background alerts: " + (e.message || "try again.")); }
+      if (r.error) { pushSay("Could not save this device: " + r.error.message); return false; }
+      pushUi(true); pushSay("Background alerts are on for this device.");
+      return true;
+    } catch (e) { pushSay("Could not turn on background alerts: " + (e.message || "try again.")); return false; }
+  }
+  $("push-on").addEventListener("click", async function () {
+    if (await enablePush()) pushSay("Background alerts are on for this device. Tap Send a test.");
   });
   $("push-off").addEventListener("click", async function () {
     try {
@@ -136,16 +143,24 @@
       pushSub = null; pushUi(false); pushSay("Background alerts are off.");
     } catch (e) { pushSay("Could not turn them off. Try again."); }
   });
-  $("push-test").addEventListener("click", async function () {
+  async function sendTest(retry) {
     pushSay("Sending a test\u2026");
     try {
       var s2 = await sb.auth.getSession();
       var r = await fetch("/api/push-test", { method: "POST", headers: { Authorization: "Bearer " + s2.data.session.access_token } });
       var d = await r.json().catch(function () { return {}; });
       if (!r.ok) { pushSay(d.error || "The test could not be sent."); return; }
-      pushSay(d.sent ? "Test sent. A notification should appear in a moment, even if you leave the app." : "The test could not be delivered" + (d.errors && d.errors[0] ? " (" + d.errors[0] + ")" : "") + ". Try turning background alerts off and on again.");
+      if (d.sent) { pushSay("Test sent. A notification should appear in a moment, even if you leave the app."); return; }
+      var gone = d.errors && /^(404|410)/.test(d.errors[0]);
+      if (gone && !retry) {
+        pushSay("This device's registration had expired. Registering again\u2026");
+        if (await enablePush()) await sendTest(true);
+        return;
+      }
+      pushSay("The test could not be delivered" + (d.errors && d.errors[0] ? " (" + d.errors[0] + ")" : "") + ".");
     } catch (e) { pushSay("The test could not be sent. Check your connection."); }
-  });
+  }
+  $("push-test").addEventListener("click", function () { sendTest(false); });
 
   function permState() {
     var s = !("Notification" in window) ? "Not supported in this browser." : Notification.permission === "granted" ? "Notifications are on." : Notification.permission === "denied" ? "Notifications are blocked. Turn them on in your browser's site settings." : "Notifications are off.";
