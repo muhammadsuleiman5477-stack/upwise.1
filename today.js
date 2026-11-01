@@ -181,16 +181,19 @@
     });
   }
   function wkMsg(t, ok) { var m = $("wk-msg"); m.textContent = t || ""; m.className = "form-msg" + (t ? (ok ? " ok" : " err") : ""); }
+  var wkBroken = false;
+  function wkSaved(on) { var b = $("wk-save"); b.disabled = on; b.textContent = on ? "Saved \u2713" : "Save review"; }
+  $("wk-note").addEventListener("input", function () { if (!wkBroken) { wkMsg(""); wkSaved(false); } });
   async function loadWeekNote() {
     var r = await sb.from("weekly_reviews").select("note").eq("week_start", weekStart).maybeSingle();
-    if (r.error) { wkMsg("Weekly notes need a one-time setup in the database."); $("wk-save").disabled = true; return; }
-    if (r.data) $("wk-note").value = r.data.note;
+    if (r.error) { wkBroken = true; wkMsg("Weekly notes need a one-time setup in the database."); $("wk-save").disabled = true; return; }
+    if (r.data) { $("wk-note").value = r.data.note; wkSaved(true); }
   }
   $("wk-save").addEventListener("click", async function () {
     var note = $("wk-note").value.trim();
     if (!note) return wkMsg("Write a line or two first.");
     var r = await sb.from("weekly_reviews").upsert({ user_id: uid, week_start: weekStart, note: note, updated_at: new Date().toISOString() }, { onConflict: "user_id,week_start" });
-    if (r.error) wkMsg("Could not save: " + r.error.message); else wkMsg("Saved.", true);
+    if (r.error) wkMsg("Could not save: " + r.error.message); else { wkMsg(""); wkSaved(true); }
   });
 
   /* quick add */
