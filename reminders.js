@@ -76,14 +76,19 @@
 
   /* settings */
   var S = A.settings;
-  $("snd").value = S.sound; $("vol").value = S.volume; $("rep").checked = !!S.repeat;
+  $("snd").value = S.sound; $("vol").value = S.volume; $("repmin").value = String(S.repeatMin); $("vib").checked = !!S.vibrate; $("vibp").value = S.vibPattern;
   $("qon").checked = !!S.quietOn; $("qs").value = S.qs; $("qe").value = S.qe;
-  function store() { S.sound = $("snd").value; S.volume = parseFloat($("vol").value); S.repeat = $("rep").checked; S.quietOn = $("qon").checked; S.qs = $("qs").value || "22:00"; S.qe = $("qe").value || "07:00"; A.save(); }
-  ["snd", "vol", "rep", "qon", "qs", "qe"].forEach(function (id) { $(id).addEventListener("change", store); });
+  function store() { S.sound = $("snd").value; S.volume = parseFloat($("vol").value); S.repeatMin = parseInt($("repmin").value, 10) || 0; S.vibrate = $("vib").checked; S.vibPattern = $("vibp").value; S.quietOn = $("qon").checked; S.qs = $("qs").value || "22:00"; S.qe = $("qe").value || "07:00"; A.save(); }
+  ["snd", "vol", "repmin", "vib", "vibp", "qon", "qs", "qe"].forEach(function (id) { $(id).addEventListener("change", store); });
   $("prev").addEventListener("click", function () {
     store(); A.stop();
-    if (S.sound === "off") { $("perm-state").textContent = "Choose a sound first. Sounds are off until you pick one."; return; }
-    A.play(S.sound);
+    if (S.sound === "off" && !S.vibrate) { $("perm-state").textContent = "Choose a sound or turn on vibration first. Both are off."; return; }
+    if (S.sound !== "off") A.play(S.sound);
+    if (S.vibrate) A.vibrate();
+  });
+  $("tvib").addEventListener("click", function () {
+    store(); A.stop();
+    $("perm-state").textContent = A.vibrate() ? "Vibrating now." : "This phone or browser did not vibrate. Some browsers need you to tap the page first, and iPhones do not allow it.";
   });
   function permState() {
     var s = !("Notification" in window) ? "Not supported in this browser." : Notification.permission === "granted" ? "Notifications are on." : Notification.permission === "denied" ? "Notifications are blocked. Turn them on in your browser's site settings." : "Notifications are off.";
