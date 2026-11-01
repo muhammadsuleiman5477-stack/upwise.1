@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your space | UPWISE</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<meta name="theme-color" content="#101a16">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<script>try{var t=localStorage.getItem("upwise-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+</head>
+<body hidden>
+<header class="site-header"><div class="wrap">
+<a class="brand" href="app.html">UPWISE</a>
+<div class="actions" style="margin-left:auto">
+<button class="btn ghost small" id="install-btn" type="button" hidden>Install app</button>
+<button id="logout" class="btn ghost small" type="button">Log out</button>
+</div>
+</div></header>
+<main class="welcome today">
+<h1 id="greet">Welcome.</h1>
+<p class="muted" id="today"></p>
+<div class="chips" id="chips" hidden></div>
+<p id="msg" class="form-msg" role="status"></p>
+
+<div class="glance" id="glance" aria-label="At a glance"></div>
+
+<details class="card" id="quick">
+<summary>Quick add</summary>
+<form id="qa-form" novalidate>
+<label class="stack">What do you want to add?
+<select id="qa-type" class="field"><option value="task">Assignment</option><option value="exam">Exam</option><option value="expense">Expense</option><option value="habit">Habit</option></select></label>
+<label class="stack"><span id="qa-l1">Assignment</span><input id="qa-1" class="field" type="text" maxlength="120"></label>
+<label class="stack" id="qa-w2"><span id="qa-l2">Due date (optional)</span><input id="qa-2" class="field" type="date"></label>
+<label class="stack" id="qa-w3" hidden>Category<select id="qa-3" class="field"></select></label>
+<p class="form-msg" id="qa-msg" role="status"></p>
+<button class="btn primary small" type="submit">Add</button>
+</form>
+</details>
+
+<section class="card"><h3>Coming up</h3><div id="up-list"></div></section>
+<section class="card"><h3>Today&rsquo;s plan</h3><div id="plan-list"></div></section>
+<section class="card" id="card-money" hidden><h3>Money this month</h3><div id="money-list"></div></section>
+<section class="card">
+<h3>Plan my day with AI</h3>
+<p class="meta">Sends only the item titles listed above to the AI to suggest a realistic plan.</p>
+<button id="ai-plan" class="btn primary small" type="button">Plan my day</button>
+<div id="ai-out" class="plan-body" style="margin-top:12px"></div>
+</section>
+
+<details class="card" id="week">
+<summary>Weekly review</summary>
+<div id="wk-stats"></div>
+<label class="stack" style="margin-top:12px">What went well this week, and what will you change?
+<textarea id="wk-note" class="field" rows="4" maxlength="2000"></textarea></label>
+<p class="form-msg" id="wk-msg" role="status"></p>
+<button id="wk-save" class="btn primary small" type="button">Save review</button>
+</details>
+
+<h2 style="font-size:22px;margin:26px 0 10px">Tools</h2>
+<div style="display:flex;flex-wrap:wrap;gap:10px">
+<a class="btn primary" href="assistant.html">AI assistant</a>
+<a class="btn ghost" href="stuck.html">I&rsquo;m Stuck</a>
+<a class="btn ghost" href="personal.html">Personal upgrade</a>
+<a class="btn ghost" href="student.html">Student tools</a>
+<a class="btn ghost" href="money.html">Money tools</a>
+<a class="btn ghost" href="tools.html">Everyday tools</a>
+</div>
+<p class="meta" style="margin-top:18px"><a href="onboarding.html" style="color:var(--accent)">Edit profile</a> &middot; On Android tap Install app to add UPWISE to your home screen. On iPhone use Share, then Add to Home Screen.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script src="today.js"></script>
+<script src="pwa.js"></script>
+</body>
+</html>
