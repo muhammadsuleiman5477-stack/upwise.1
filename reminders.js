@@ -78,7 +78,7 @@
   var S = A.settings;
   $("snd").value = S.sound; $("vol").value = S.volume; $("repmin").value = String(S.repeatMin); $("vib").checked = !!S.vibrate; $("vibp").value = S.vibPattern;
   $("qon").checked = !!S.quietOn; $("qs").value = S.qs; $("qe").value = S.qe;
-  function store() { S.sound = $("snd").value; S.volume = parseFloat($("vol").value); S.repeatMin = parseInt($("repmin").value, 10) || 0; S.vibrate = $("vib").checked; S.vibPattern = $("vibp").value; S.quietOn = $("qon").checked; S.qs = $("qs").value || "22:00"; S.qe = $("qe").value || "07:00"; A.save(); }
+  function store() { S.sound = $("snd").value; S.volume = parseFloat($("vol").value); S.repeatMin = parseInt($("repmin").value, 10) || 0; S.vibrate = $("vib").checked; S.vibPattern = $("vibp").value; S.quietOn = $("qon").checked; S.qs = $("qs").value || "22:00"; S.qe = $("qe").value || "07:00"; A.save(); syncPush(); }
   ["snd", "vol", "repmin", "vib", "vibp", "qon", "qs", "qe"].forEach(function (id) { $(id).addEventListener("change", store); });
   $("prev").addEventListener("click", function () {
     store(); A.stop();
@@ -90,6 +90,63 @@
     store(); A.stop();
     $("perm-state").textContent = A.vibrate() ? "Vibrating now." : "This phone or browser did not vibrate. Some browsers need you to tap the page first, and iPhones do not allow it.";
   });
+  /* background (push) alerts */
+  var pushSub = null;
+  function b64ToBytes(b) {
+    var pad = "=".repeat((4 - b.length % 4) % 4), raw = atob((b + pad).replace(/-/g, "+").replace(/_/g, "/")), out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  function pushSay(t) { $("push-state").textContent = t; }
+  function pushUi(on) { $("push-on").hidden = on; $("push-off").hidden = !on; }
+  function prefs() {
+    return { tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || null), quiet_on: !!S.quietOn, quiet_start: S.qs, quiet_end: S.qe, vib: S.vibPattern };
+  }
+  function syncPush() {
+    if (!pushSub) return;
+    sb.from("push_subscriptions").update(prefs()).eq("endpoint", pushSub.endpoint).then(function () {});
+  }
+  async function pushInit() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) { pushSay("This browser does not support background alerts. On iPhone, add UPWISE to the home screen first."); $("push-on").disabled = true; return; }
+    try {
+      var reg = await navigator.serviceWorker.ready;
+      pushSub = await reg.pushManager.getSubscription();
+      pushUi(!!pushSub);
+      pushSay(pushSub ? "Background alerts are on for this device." : "Background alerts are off.");
+    } catch (e) { pushSay("Could not check background alerts."); }
+  }
+  $("push-on").addEventListener("click", async function () {
+    pushSay("Setting up\u2026");
+    try {
+      if ((await A.permission()) !== "granted") { pushSay("Allow notifications first. If they are blocked, turn them on in your browser's site settings."); return; }
+      var k = await (await fetch("/api/push-key")).json();
+      if (!k.key) { pushSay("The server is not set up for background alerts yet."); return; }
+      var reg = await navigator.serviceWorker.ready;
+      pushSub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(k.key) }));
+      var j = pushSub.toJSON();
+      var row = prefs(); row.user_id = uid; row.endpoint = j.endpoint; row.p256dh = j.keys.p256dh; row.auth = j.keys.auth;
+      var r = await sb.from("push_subscriptions").upsert(row, { onConflict: "endpoint" });
+      if (r.error) { pushSay("Could not save this device: " + r.error.message); return; }
+      pushUi(true); pushSay("Background alerts are on for this device. Tap Send a test.");
+    } catch (e) { pushSay("Could not turn on background alerts: " + (e.message || "try again.")); }
+  });
+  $("push-off").addEventListener("click", async function () {
+    try {
+      if (pushSub) { var ep = pushSub.endpoint; await pushSub.unsubscribe(); await sb.from("push_subscriptions").delete().eq("endpoint", ep); }
+      pushSub = null; pushUi(false); pushSay("Background alerts are off.");
+    } catch (e) { pushSay("Could not turn them off. Try again."); }
+  });
+  $("push-test").addEventListener("click", async function () {
+    pushSay("Sending a test\u2026");
+    try {
+      var s2 = await sb.auth.getSession();
+      var r = await fetch("/api/push-test", { method: "POST", headers: { Authorization: "Bearer " + s2.data.session.access_token } });
+      var d = await r.json().catch(function () { return {}; });
+      if (!r.ok) { pushSay(d.error || "The test could not be sent."); return; }
+      pushSay(d.sent ? "Test sent. A notification should appear in a moment, even if you leave the app." : "The test could not be delivered. Try turning background alerts off and on again.");
+    } catch (e) { pushSay("The test could not be sent. Check your connection."); }
+  });
+
   function permState() {
     var s = !("Notification" in window) ? "Not supported in this browser." : Notification.permission === "granted" ? "Notifications are on." : Notification.permission === "denied" ? "Notifications are blocked. Turn them on in your browser's site settings." : "Notifications are off.";
     $("perm-state").textContent = s;
@@ -103,5 +160,6 @@
     uid = s.data.session.user.id;
     document.body.hidden = false;
     load();
+    pushInit();
   })();
 })();
