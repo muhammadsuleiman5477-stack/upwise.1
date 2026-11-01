@@ -19,18 +19,57 @@
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(Math.max(vol, 0.0002), t + 0.03);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+    o.connect(g); g.connect(bus(a)); o.start(t); o.stop(t + dur + 0.05);
+  }
+  // master bus: a gain stage feeding a limiter, so loud sounds get much louder without crackling
+  var master = null;
+  function bus(a) {
+    if (!master) {
+      var comp = a.createDynamicsCompressor();
+      comp.threshold.value = -18; comp.knee.value = 6; comp.ratio.value = 14; comp.attack.value = 0.002; comp.release.value = 0.15;
+      master = a.createGain(); master.gain.value = 1;
+      master.connect(comp); comp.connect(a.destination);
+    }
+    return master;
+  }
+  // a tone that slides from one pitch to another (sirens)
+  function sweep(f1, f2, start, dur, vol, type) {
+    var a = audio(); if (!a) return;
+    var o = a.createOscillator(), g = a.createGain(), t = a.currentTime + start, v = Math.max(vol, 0.0002);
+    o.type = type || "sawtooth";
+    o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.04);
+    g.gain.setValueAtTime(v, t + dur - 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(bus(a)); o.start(t); o.stop(t + dur + 0.05);
   }
   var SOUNDS = {
     chime: function (v) { tone(784, 0, 0.5, v * 0.8); tone(988, 0.18, 0.7, v * 0.8); },
     bell: function (v) { tone(660, 0, 1.2, v * 0.7); tone(1320, 0, 0.8, v * 0.25); },
     pulse: function (v) { tone(520, 0, 0.18, v); tone(520, 0.3, 0.18, v); tone(520, 0.6, 0.18, v); },
-    // harsh square-wave beeps: the loudest and hardest to miss
-    alarm: function (v) { for (var i = 0; i < 6; i++) tone(i % 2 ? 660 : 880, i * 0.28, 0.22, v * 0.8, "square"); }
+    fanfare: function (v) {
+      var n = [523, 659, 784, 1047, 784, 1047];
+      for (var i = 0; i < n.length; i++) tone(n[i], i * 0.16, i === n.length - 1 ? 0.6 : 0.22, v * 0.7, "triangle");
+    },
+    alarm: function (v) { for (var i = 0; i < 6; i++) tone(i % 2 ? 660 : 880, i * 0.28, 0.22, v * 0.8, "square"); },
+    clock: function (v) { for (var r = 0; r < 3; r++) for (var i = 0; i < 4; i++) tone(1400, r * 0.9 + i * 0.14, 0.09, v * 0.8, "square"); },
+    siren: function (v) { sweep(600, 1300, 0, 0.9, v * 0.7); sweep(1300, 600, 0.9, 0.9, v * 0.7); sweep(600, 1300, 1.8, 0.9, v * 0.7); },
+    emergency: function (v) { for (var i = 0; i < 6; i++) tone(i % 2 ? 770 : 960, i * 0.4, 0.38, v * 0.75, "square"); },
+    rising: function (v) { for (var i = 0; i < 6; i++) tone(500 + i * 160, i * 0.35, 0.28, v * (0.35 + i * 0.13), "square"); },
+    // layered square and saw waves around 3 kHz, where hearing is most sensitive: the loudest option
+    ultra: function (v) {
+      for (var i = 0; i < 8; i++) {
+        tone(i % 2 ? 3200 : 2800, i * 0.18, 0.16, v * 0.8, "square");
+        tone(i % 2 ? 1600 : 1400, i * 0.18, 0.16, v * 0.5, "sawtooth");
+      }
+    }
   };
+  // how much the loud sounds are pushed before the limiter (gentle sounds are left alone)
+  var BOOST = { fanfare: 1.2, alarm: 2, clock: 2.2, siren: 2.4, emergency: 2.4, rising: 2, ultra: 3 };
   function play(kind) {
     if (!SOUNDS[kind]) return;
-    SOUNDS[kind](Math.min(Math.max(Number(S.volume) || 0.4, 0.05), 1) * 0.95); // volume slider goes all the way to full
+    var a = audio(); if (!a) return;
+    bus(a).gain.value = BOOST[kind] || 1;
+    SOUNDS[kind](Math.min(Math.max(Number(S.volume) || 0.4, 0.05), 1) * 0.95); // the volume slider goes all the way to full
   }
   function stopSound() { if (loopTimer) clearInterval(loopTimer); loopTimer = null; }
   function startSound(kind) {
@@ -104,7 +143,7 @@
     showAlert(rem, late);
     if (late || quiet()) return;
     sysNotify(rem);
-    if (S.sound !== "off") startSound(S.sound);
+    if (S.sound !== "off") { startSound(S.sound); try { if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 600]); } catch (e) {} }
   }
 
   /* ---- checking for due reminders ---- */
